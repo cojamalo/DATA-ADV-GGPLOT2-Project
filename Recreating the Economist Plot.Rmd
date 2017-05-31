@@ -18,7 +18,9 @@ library(dplyr)
 
 ## Reference plot
 The goal of this project is to demonstrate plotting skills in R to recreate the following professional plot that appeared in The Economist magazine. Everything is done from scratch using `ggplot2`:
-![Source plot to recreate.](/Users/cojamalo/Documents/DATA-Udemy- Data-Viz/Economist1.png)
+
+
+![Source plot to recreate.](/Users/cojamalo/Documents/GitHub/DATA-ADV-GGPLOT2-Project/Economist1.png)
 <br>
 
 ## Load data
@@ -169,7 +171,7 @@ ggplot(plot_data, aes(x = CPI, y = HDI, color = Region)) +
 
 ## Final comments
 Compare the above recreated plot to the reference plot below:
-![Source plot to recreate.](/Users/cojamalo/Documents/DATA-Udemy- Data-Viz/Economist1.png)
+![Source plot to recreate.](/Users/cojamalo/Documents/GitHub/DATA-ADV-GGPLOT2-Project/Economist1.png)
 
 The recreated plot is very similar to the reference plot. Some of following key issues remain, but are not addressed:
 
