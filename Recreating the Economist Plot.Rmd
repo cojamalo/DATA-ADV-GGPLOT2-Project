@@ -1,5 +1,5 @@
 ---
-title: "Recreating the Economist Visualizaion"
+title: "Recreating a Professional Visualizaion"
 output: 
     html_document:
         toc: true
@@ -17,7 +17,7 @@ library(dplyr)
 ```
 
 ## Reference plot
-The goal of this project is to demonstrate plotting skills in R to recreate the following professional plot that appeared in The Economist magazine. Everything is done from scratch using `ggplot2`:
+The goal of this project is to demonstrate plotting skills in R to recreate the following professional plot that appeared in <i>The Economist</i> magazine. Everything is done from scratch using `ggplot2`:
 
 
 ![Source plot to recreate.](/Users/cojamalo/Documents/GitHub/DATA-ADV-GGPLOT2-Project/Economist1.png)
@@ -47,7 +47,7 @@ plot_data$Region <- revalue(plot_data$Region, c("EU W. Europe" = "OECD" , "Ameri
 plot_data$Region <- factor(plot_data$Region, levels(plot_data$Region)[c(4, 1:3, 5:6)])
 ```
 
-Other miscellaneous changes had to be made to the data since the source data was not labeled the exact same as the Economist plot:
+Other miscellaneous changes had to be made to the data since the source data was not labeled the exact same as <i>The Economist</i> plot:
 ```{r}
 plot_data[plot_data$Country == "United States",]$Country <- "US"
 plot_data[plot_data$Country == "Romania",]$CPI <- 11 # Make it disappear (Could be different data for why its missing)
@@ -175,9 +175,9 @@ Compare the above recreated plot to the reference plot below:
 
 The recreated plot is very similar to the reference plot. Some of following key issues remain, but are not addressed:
 
-* The correct font is missing. The Economist uses a different font than the default font used in ggplot. If the exact name of the font was known, it could be possible to fix this.
+* The correct font is missing. <i>The Economist</i> uses a different font than the default font used in ggplot. If the exact name of the font was known, it could be possible to fix this.
 * Some of the longer country name labels feature a new line such as "South Africa", but this was not fixed in the recreation.
 * The R^2 value is missing from the legend
-* It is clear that the supplied data is not exactly the same as what the Economist used, or they edited their data in an unknown way. Miscellaneous data errors and region classifications remain in the recreation compared to the reference plot.
+* It is clear that the supplied data is not exactly the same as what <i>The Economist</i> used, or they edited their data in an unknown way. Miscellaneous data errors and region classifications remain in the recreation compared to the reference plot.
 * The x-axis looks a little different as its line extends past 1 in the recreation
 * Other small spacing, margin, etc difference - of course, not everything is in the exact right spot since most positions were estimated.
