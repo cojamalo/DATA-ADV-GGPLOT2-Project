@@ -1,0 +1,181 @@
+---
+title: "Recreating the Economist Visualizaion"
+output: 
+    html_document:
+        toc: true
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+## Load packages 
+```{r, message=FALSE, warning=FALSE}
+library(data.table)
+library(plyr)
+library(ggplot2)
+library(dplyr)
+```
+
+## Reference plot
+The goal of this project is to demonstrate plotting skills in R to recreate the following professional plot that appeared in The Economist magazine. Everything is done from scratch using `ggplot2`:
+![Source plot to recreate.](/Users/cojamalo/Documents/DATA-Udemy- Data-Viz/Economist1.png)
+<br>
+
+## Load data
+The data was supplied by the "Data Science and Machine Learning Bootcamp with R" Udemy course:
+```{r}
+plot_data <- fread("Economist_Assignment_Data.csv", na.strings = "", showProgress = FALSE) %>% tbl_df
+```
+<br>
+
+## Clean data
+Check the data to make sure it is in a good format for plotting:
+```{r}
+summary(plot_data)
+```
+
+Everything looks good except for `Region`. This variable will be converted to a factor variable because it is categorical:
+```{r}
+plot_data$Region <- factor(plot_data$Region)
+```
+
+The `Region` variable also has to be revalued and reordered to have the same names and ordering:
+```{r}
+plot_data$Region <- revalue(plot_data$Region, c("EU W. Europe" = "OECD" , "Americas" = "Americas", "Asia Pacific" = "Asia & Oceania", "East EU Cemt Asia" = "Central & Eastern Europe", "MENA" = "Middle East & north Africa", "SSA" = "Sub-Saharan Africa"))
+plot_data$Region <- factor(plot_data$Region, levels(plot_data$Region)[c(4, 1:3, 5:6)])
+```
+
+Other miscellaneous changes had to be made to the data since the source data was not labeled the exact same as the Economist plot:
+```{r}
+plot_data[plot_data$Country == "United States",]$Country <- "US"
+plot_data[plot_data$Country == "Romania",]$CPI <- 11 # Make it disappear (Could be different data for why its missing)
+plot_data[plot_data$Country == "Australia",]$Region <- "OECD"
+plot_data[plot_data$Country == "Canada",]$Region <- "OECD"
+plot_data[plot_data$Country == "Chile",]$Region <- "OECD"
+plot_data[plot_data$Country == "Cyprus",]$Region <- "Central & Eastern Europe"
+plot_data[plot_data$Country == "Israel",]$Region <- "OECD"
+plot_data[plot_data$Country == "Japan",]$Region <- "OECD"
+plot_data[plot_data$Country == "Korea (South)",]$Region <- "OECD"
+plot_data[plot_data$Country == "Lithuania",]$Region <- "Central & Eastern Europe"
+plot_data[plot_data$Country == "Malta",]$Region <- "Central & Eastern Europe"
+plot_data[plot_data$Country == "Mexico",]$Region <- "OECD"
+plot_data[plot_data$Country == "New Zealand",]$Region <- "OECD"
+plot_data[plot_data$Country == "Turkey",]$Region <- "OECD"
+plot_data[plot_data$Country == "US",]$Region <- "OECD"
+plot_data[plot_data$Country == "Sudan",]$Region <- "Middle East & north Africa"
+```
+<br>
+
+## Recreate the Plot
+
+### Geom_point layer and settings
+First, the data is plotted using a `geom_point` layer and colored according to each country's region. Other aesthetic settings were included to make the points look like the colored circles in the reference plot:
+```{r}
+ggplot(plot_data, aes(x = CPI, y = HDI, color = Region)) + 
+    geom_point(size = 2.5, shape = 21, fill = "white", stroke = 1)
+finished_layers <- list(geom_point(size = 2.5, shape = 21, fill = "white", stroke = 1))
+```
+
+### Geom_smooth layer and settings
+A regression line for the log(CPI) is added to the plot using `geom_smooth`, resized, colored red, and extended to the full range of the plot:
+```{r}
+ggplot(plot_data, aes(x = CPI, y = HDI, color = Region)) + 
+    finished_layers +
+    geom_smooth(method= "lm", formula = y ~ log(x), se = FALSE, color = "red", size = 0.5, fullrange = TRUE)
+finished_layers <- list(finished_layers, geom_smooth(method= "lm", formula = y ~ log(x), se = FALSE, color = "red", size = 0.5, fullrange = TRUE))
+```
+<br>
+
+### Geom_text layer and settings
+Next, the labels are added to the plot using `geom_text`, resized, and then nudged into the right positions:
+```{r}
+pointsToLabel <- c("Russia", "Venezuela", "Iraq", "Myanmar", "Sudan",
+                   "Afghanistan", "Congo", "Greece", "Argentina", "Brazil",
+                   "India", "Italy", "China", "South Africa", "Spain",
+                   "Botswana", "Cape Verde", "Bhutan", "Rwanda", "France",
+                   "US", "Germany", "Britain", "Barbados", "Norway", "Japan",
+                   "New Zealand", "Singapore")
+ggplot(plot_data, aes(x = CPI, y = HDI, color = Region)) + 
+    finished_layers +
+    geom_text(aes(label = Country), color = "gray20", data = subset(plot_data, Country %in% pointsToLabel), check_overlap = FALSE, size = (5/14)*9, 
+              nudge_x = c(-0.30, -0.450, 00.45, 0.40, 0.50, -0.220, 00.00, 0.600, 00.60, -0.30, -0.50, 0.00, -0.40, 0.3, -0.25, 0.00, 00.50, -0.25, 0.40, 0.00, -1.00, 0.45, 00.45, 00.60, -0.40, -0.40, 0.00, -0.55),    
+              nudge_y = c(-0.04, 00.035, -0.03, 0.00, 0.03, 00.100, -0.03, 0.005, -0.02, -0.03, 00.06, 0.06, 00.02, 0.0, 00.00, 0.05, -0.06, 00.04, 0.03, 0.04, 00.07, 0.02, -0.03, -0.04, 00.07, 00.03, 0.04, 00.03))
+finished_layers <- list(finished_layers, geom_text(aes(label = Country), color = "gray20", data = subset(plot_data, Country %in% pointsToLabel), check_overlap = FALSE, size = (5/14)*9, 
+              nudge_x = c(-0.30, -0.450, 00.45, 0.40, 0.50, -0.220, 00.00, 0.600, 00.60, -0.30, -0.50, 0.00, -0.40, 0.3, -0.25, 0.00, 00.50, -0.25, 0.40, 0.00, -1.00, 0.45, 00.45, 00.60, -0.40, -0.40, 0.00, -0.55),    
+              nudge_y = c(-0.04, 00.035, -0.03, 0.00, 0.03, 00.100, -0.03, 0.005, -0.02, -0.03, 00.06, 0.06, 00.02, 0.0, 00.00, 0.05, -0.06, 00.04, 0.03, 0.04, 00.07, 0.02, -0.03, -0.04, 00.07, 00.03, 0.04, 00.03)))
+      
+```
+<br>
+
+### Geom_segments and settings
+The line segments needed for some of the countries are then added to the plot using `geom_segment`:
+```{r}
+ggplot(plot_data, aes(x = CPI, y = HDI, color = Region)) + 
+    finished_layers +
+    geom_segment(x = 1.7, y = 0.82, xend = 2.4, yend = 0.755, size = 0.01, alpha = 0.7) + # Russia
+    geom_segment(x = 3.6, y = 0.80, xend = 3.8, yend = 0.718, size = 0.01, alpha = 0.7) + # Brazil
+    geom_segment(x = 3.95, y = 0.665, xend = 3.6, yend = 0.687, size = 0.01, alpha = 0.7) + # China
+    geom_segment(x = 4.2, y = 0.59, xend = 4.1, yend = 0.619, size = 0.01, alpha = 0.7) + # South Africa
+    geom_segment(x = 6.05, y = 0.94, xend = 6.2, yend = 0.878, size = 0.01, alpha = 0.7) + # Spain
+    geom_segment(x = 6.8, y = 0.94, xend = 7, yend = 0.884, size = 0.01, alpha = 0.7) + # France
+    geom_segment(x = 8, y = 0.945, xend = 8, yend = 0.92, size = 0.01, alpha = 0.7) + # Germany
+    geom_segment(x = 8.3, y = 0.85, xend = 8, yend = 0.901, size = 0.01, alpha = 0.7) # Japan
+finished_layers <- list(finished_layers, geom_segment(x = 1.7, y = 0.82, xend = 2.4, yend = 0.755, size = 0.01, alpha = 0.7), geom_segment(x = 3.6, y = 0.80, xend = 3.8, yend = 0.718, size = 0.01, alpha = 0.7),geom_segment(x = 3.95, y = 0.665, xend = 3.6, yend = 0.687, size = 0.01, alpha = 0.7), geom_segment(x = 4.2, y = 0.59, xend = 4.1, yend = 0.619, size = 0.01, alpha = 0.7), geom_segment(x = 6.05, y = 0.94, xend = 6.2, yend = 0.878, size = 0.01, alpha = 0.7), geom_segment(x = 6.8, y = 0.94, xend = 7, yend = 0.884, size = 0.01, alpha = 0.7), geom_segment(x = 8, y = 0.945, xend = 8, yend = 0.92, size = 0.01, alpha = 0.7), geom_segment(x = 8.3, y = 0.85, xend = 8, yend = 0.901, size = 0.01, alpha = 0.7))
+```
+<br>
+
+### Scale color manual and settings
+After that, the `Region` colors are recolored and the newlines are added for the long region names using `scale_color_manual`:
+```{r}
+ggplot(plot_data, aes(x = CPI, y = HDI, color = Region)) + 
+    finished_layers +
+    scale_colour_manual(name = NULL,values = c('#01344A','#228DBD','#6DBBD8','#1B6E64','#D24131','#621107'), labels = c("OECD","Americas","Asia & \nOceania","Central & \nEastern Europe","Middle East & \nnorth Africa", "Sub-Saharan \nAfrica"))
+finished_layers <- list(finished_layers, scale_colour_manual(name = NULL,values = c('#01344A','#228DBD','#6DBBD8','#1B6E64','#D24131','#621107'), labels = c("OECD","Americas","Asia & \nOceania","Central & \nEastern Europe","Middle East & \nnorth Africa", "Sub-Saharan \nAfrica")))
+```
+<br>
+
+### Scale continuous for both axes and settings
+Both axes are extended to the proper lengths and breaks are set to match the reference plots using `scale_x_continous` and `scale_y_continous`: 
+```{r}
+ggplot(plot_data, aes(x = CPI, y = HDI, color = Region)) + 
+    finished_layers +
+    scale_x_continuous(limits = c(1, 10), breaks = c(1:10)) +
+    scale_y_continuous(limits = c(0.2,1), breaks = c(0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0))
+finished_layers <- list(finished_layers, scale_x_continuous(limits = c(1, 10), breaks = c(1:10)), scale_y_continuous(limits = c(0.2,1), breaks = c(0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)))   
+```
+<br>
+
+### Plot labels and settings
+The plot is then properly labeled using a `labs` layer:
+```{r}
+ggplot(plot_data, aes(x = CPI, y = HDI, color = Region)) + 
+    finished_layers +
+    labs(title = "Corruption and human development", y = "Human Development Index, 2011 (1=best)", x = "Corruption Perceptions Index, 2011 (10=least corrupt)", caption = "Sources: Transparency International; UN Development Report")
+finished_layers <- list(finished_layers, labs(title = "Corruption and human development", y = "Human Development Index, 2011 (1=best)", x = "Corruption Perceptions Index, 2011 (10=least corrupt)", caption = "Sources: Transparency International; UN Development Report")) 
+```
+<br>
+
+### Theme settings
+Finally, the legend is moved to its proper position and shape using `guides` and `theme`. `theme_bw` is added to quickly change many theme settings to match the reference, and many more theme settings are set manually until the plot is complete:
+```{r}
+ggplot(plot_data, aes(x = CPI, y = HDI, color = Region)) + 
+    finished_layers +
+    guides(colour = guide_legend(nrow = 1)) +
+    theme_bw() +
+    theme(legend.position="top", panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank(), panel.grid.minor.y = element_blank(), legend.justification = 0, plot.title = element_text(face = 'bold'), axis.title = element_text(face = 'italic', size = 8), plot.caption = element_text(size = 8, hjust = 0), panel.border = element_blank(), axis.line.x = element_line(color = "black"), axis.ticks.y = element_blank(), axis.ticks.length=unit(-0.1, "cm"),axis.text.x = element_text(margin=unit(c(0.5,0.5,0,0), "cm")))
+```
+<br>
+
+
+## Final comments
+Compare the above recreated plot to the reference plot below:
+![Source plot to recreate.](/Users/cojamalo/Documents/DATA-Udemy- Data-Viz/Economist1.png)
+
+The recreated plot is very similar to the reference plot. Some of following key issues remain, but are not addressed:
+
+* The correct font is missing. The Economist uses a different font than the default font used in ggplot. If the exact name of the font was known, it could be possible to fix this.
+* Some of the longer country name labels feature a new line such as "South Africa", but this was not fixed in the recreation.
+* The R^2 value is missing from the legend
+* It is clear that the supplied data is not exactly the same as what the Economist used, or they edited their data in an unknown way. Miscellaneous data errors and region classifications remain in the recreation compared to the reference plot.
+* The x-axis looks a little different as its line extends past 1 in the recreation
+* Other small spacing, margin, etc difference - of course, not everything is in the exact right spot since most positions were estimated.
