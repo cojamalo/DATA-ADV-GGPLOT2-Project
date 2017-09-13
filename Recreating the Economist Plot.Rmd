@@ -1,5 +1,5 @@
 ---
-title: "Recreating a Professional Visualizaion"
+title: "Recreating a Professional Visualization"
 output: 
     html_document:
         toc: true
